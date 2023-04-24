@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 import classes from "./MainNavigation.module.css"
 
@@ -9,10 +10,10 @@ const MainNavigation = () => {
             <nav>
                 <ul>
                     <li>
-                        <link to="/">All Meetups</link>
+                        <Link href="/">All Meetups</Link>
                     </li>
                     <li>
-                        <link to="/new-meetup">Add new Meetup</link>
+                        <Link href="/new-meetup">Add new Meetup</Link>
                     </li>
                 </ul>
             </nav>
@@ -21,3 +22,5 @@ const MainNavigation = () => {
 }
 
 export default MainNavigation
+
+// Link -> use to prevent sending new request and getting new html page
