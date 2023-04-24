@@ -26,12 +26,24 @@ const HomePage = (props) => {
 export default HomePage
 
 // page pre-rendering with data (static site generation; SSG)
-export const getStaticProps = async () => {
+// export const getStaticProps = async () => {
+//   return{
+//     props: {
+//       meetups: DUMMY_MEETUPS
+//     },
+//     revalidate: 10
+//   }
+// }
+
+// server-side rendering (SSR)
+export const getServerSideProps = async (context) => {
+  const req = context.req
+  const res = context.res
+
   return{
     props: {
       meetups: DUMMY_MEETUPS
-    },
-    revalidate: 10
+    }
   }
 }
 
@@ -80,4 +92,14 @@ export const getStaticProps = async () => {
  * 
  * - to avoid this issue, use another key in the return object (revalidate: )
  * - it  will re-generate the page AFTER EVERY 10 SECONDS, if there requests
+ */
+
+/**
+ * server-side rendering
+ * 
+ * - it will re-generate the page FOR EVERY INCOMING NEW REQUESTS
+ * - do not pre-rendered during build process
+ * 
+ * - use this mechanism, if you want access the complete request and response objects
+ * and if content changes very frequently
  */
