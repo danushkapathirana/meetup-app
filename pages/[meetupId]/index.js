@@ -1,8 +1,15 @@
+import { MongoClient, ObjectId } from "mongodb"
+
 import MeetupDetails from "@/components/meetups/MeetupDetails"
 
-const MeetupDetailsPage = () => {
+const MeetupDetailsPage = (props) => {
     return(
-        <MeetupDetails image="" title="" address="" description="" />
+        <MeetupDetails 
+            image={props.meetupData.image}
+            title={props.meetupData.title}
+            address={props.meetupData.address}
+            description={props.meetupData.description}
+        />
     )
 }
 
@@ -11,32 +18,45 @@ export default MeetupDetailsPage
 export const getStaticProps = async (context) => {
     const meetupId = context.params.meetupId
 
-    console.log(meetupId)
+    const client = await MongoClient.connect("mongodb+srv://admin:d52uuHnusIEGl9bO@meetup.jtbfjgq.mongodb.net/meetups?retryWrites=true&w=majority")
+    const db = client.db()
+
+    const meetupCollection = db.collection("meetup")
+
+    // find params meetupId from the database (mongo db use ObjectId type)
+    const selectedMeetup = await meetupCollection.findOne({_id: new ObjectId(meetupId)})
+    client.close()
 
     return{
         props: {
             meetupData: {
-                image: "",
-                id: "",
-                title: "",
-                address: "",
-                description: ""
+                id: selectedMeetup._id.toString(),
+                title: selectedMeetup.title,
+                image: selectedMeetup.image,
+                address: selectedMeetup.address,
+                description: selectedMeetup.description
             }
         }
     }
 }
 
 export const getStaticPaths = async () => {
+    const client = await MongoClient.connect("mongodb+srv://admin:d52uuHnusIEGl9bO@meetup.jtbfjgq.mongodb.net/meetups?retryWrites=true&w=majority")
+    const db = client.db()
+
+    const meetupCollection = db.collection("meetup")
+
+    // {_id: 1} -> tells fetching ids only, not other values
+    const meetup = await meetupCollection.find({}, {_id: 1}).toArray()
+    client.close()
+
     return{
         fallback: false,
-        paths: [
-            // this is one version of object that url might be
-            {
-                params: {
-                    meetupId: "m1",
-                }
+        paths: meetup.map((id_paths) => ({
+            params: {
+                meetupId: id_paths._id.toString()
             }
-        ]
+        }))
     }
 }
 
