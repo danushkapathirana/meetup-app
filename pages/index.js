@@ -1,51 +1,65 @@
-import MeetupList from "@/components/meetups/MeetupList"
+import { Fragment } from "react"
+import Head from "next/head"
+import { MongoClient } from "mongodb"
 
-const DUMMY_MEETUPS = [
-  {
-    id: 'm1',
-    title: 'A First Meetup',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1280px-Stadtbild_M%C3%BCnchen.jpg',
-    address: 'Some address 5, 12345 Some City',
-    description: 'This is a first meetup!'
-  },
-  {
-    id: 'm2',
-    title: 'A Second Meetup',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Stadtbild_M%C3%BCnchen.jpg/1280px-Stadtbild_M%C3%BCnchen.jpg',
-    address: 'Some address 10, 12345 Some City',
-    description: 'This is a second meetup!'
-  }
-]
+import MeetupList from "@/components/meetups/MeetupList"
 
 const HomePage = (props) => {
   return(
-    <MeetupList meetups={props.meetups} />
+    <Fragment>
+      {/* this head and meta data should be applied to all page components */}
+      <Head>
+        <title>React Meetups</title>
+        <meta name="description" content="Browse a huge list of highly active React meetups!"></meta>
+      </Head>
+      <MeetupList meetups={props.meetups} />
+    </Fragment>
   )
 }
 
 export default HomePage
 
 // page pre-rendering with data (static site generation; SSG)
-// export const getStaticProps = async () => {
-//   return{
-//     props: {
-//       meetups: DUMMY_MEETUPS
-//     },
-//     revalidate: 10
-//   }
-// }
+export const getStaticProps = async () => {
+  /**
+   * - here we do not want use fetch, because this code execute on the server,
+   *   so, sending request to own api end point is redundant
+   * - therefore, we can directly code to fetch the data
+   */
+  const client = await MongoClient.connect("mongodb+srv://admin:d52uuHnusIEGl9bO@meetup.jtbfjgq.mongodb.net/meetups?retryWrites=true&w=majority")
+  const db = client.db()
 
-// server-side rendering (SSR)
-export const getServerSideProps = async (context) => {
-  const req = context.req
-  const res = context.res
+  const meetupCollection = db.collection("meetup")
+
+  // get all meetup data as an array of objects
+  const meetup = await meetupCollection.find().toArray()
+  console.log(meetup);
+  client.close()
 
   return{
     props: {
-      meetups: DUMMY_MEETUPS
-    }
+      meetups: meetup.map((meetup_data) => ({
+        title: meetup_data.title,
+        image: meetup_data.image,
+        address: meetup_data.address,
+        id: meetup_data._id.toString()
+      }))
+    },
+    revalidate: 10
   }
 }
+
+// server-side rendering (SSR)
+// export const getServerSideProps = async (context) => {
+//   const req = context.req
+//   const res = context.res
+
+//   return{
+//     props: {
+//       meetups: DUMMY_MEETUPS
+//     }
+//   }
+// }
 
 
 // const HomePage = () => {
